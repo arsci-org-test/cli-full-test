@@ -64,7 +64,7 @@ jobs:
           GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
         run: |
           cat .gruntwork/config.yml
-          if [ $(yq '.repo-allow-list | any_c(.  == "${{ inputs.repo_name }}")' .gruntwork/config.yml) == "false" ]; then
-            yq '.repo-allow-list += "${{ inputs.repo_name }}"' -i .gruntwork/config.yml
+          if [ $(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml) == "false" ]; then
+            yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
           fi
           cat .gruntwork/config.yml
