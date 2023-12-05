@@ -75,7 +75,7 @@ jobs:
         with:
           base: main
           token: ${{ secrets.MANAGE_REPOS_TOKEN }} 
-          path: ${{ github.event.repository.name }}
+          # path: ${{ github.event.repository.name }}
           branch: "enhancement/sdlc-account-team-${{ inputs.repo_name }}"
           commit-message: "Add repo"
           title: "Add repo"
