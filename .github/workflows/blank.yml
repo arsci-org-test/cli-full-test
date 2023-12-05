@@ -68,3 +68,16 @@ jobs:
             yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
           fi
           cat .gruntwork/config.yml
+
+      - name: Create Pull Request to add the new repo to the allow list
+        id: create_pr
+        uses: peter-evans/create-pull-request@v5.0.2
+        with:
+          base: main
+          token: ${{ secrets.MANAGE_REPOS_TOKEN }} 
+          path: ${{ github.event.repository.name }}
+          branch: "enhancement/sdlc-account-team-${{ inputs.repo_name }}"
+          commit-message: "Add repo"
+          title: "Add repo"
+          body: |
+            This pull request updates things.
