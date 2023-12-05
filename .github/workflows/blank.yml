@@ -35,5 +35,7 @@ jobs:
               -f name=${{ inputs.repo_name }} \
               -f visibility=private \
               -f auto_init=true
+          else
+            echo "Repository already exists"
           fi
           
