@@ -63,6 +63,6 @@ jobs:
         run: |
           cat .gruntwork/config.yml
           if [ $(yq '.repo-allow-list | any_c(.  == "${{ inputs.repo_name }}")' .gruntwork/config.yml) == "false" ]; then
-            yq '.repo-allow-list += "${{ inputs.repo_name"' -i .gruntwork/config.yml
+            yq '.repo-allow-list += "${{ inputs.repo_name }}"' -i .gruntwork/config.yml
           fi
           cat .gruntwork/config.yml
