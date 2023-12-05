@@ -33,7 +33,7 @@ jobs:
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /orgs/${{ github.repository_owner }}/repos \
               -f name=${{ inputs.repo_name }} \
-              -f visibility=private \
+              -f visibility=public \
               -f auto_init=true
           else
             echo "Repository already exists"
