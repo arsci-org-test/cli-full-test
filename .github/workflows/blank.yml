@@ -55,4 +55,14 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.repo_name }}/branches/main/protection \
             -d '{ "required_status_checks": { "strict": true, "checks": [ ] }, "required_pull_request_reviews": { "require_code_owner_reviews": true, "require_last_push_approval": true, "required_approving_review_count": 1 }, "enforce_admins": false, "restrictions": null }'
-          
+
+      - name: Add new repository to Gruntwork repo-allow-list
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
+        run: |
+          cat .gruntwork/config.yml
+          if [ $(yq '.repo-allow-list | any_c(.  == "${{ inputs.repo_name")' .gruntwork/config.yml) == "false" ]; then
+            yq '.repo-allow-list += "${{ inputs.repo_name"' -i .gruntwork/config.yml
+          fi
+          cat .gruntwork/config.yml
