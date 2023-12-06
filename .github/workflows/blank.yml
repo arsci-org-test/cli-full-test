@@ -24,6 +24,7 @@ jobs:
         run: |
           # Check if repo is already in repo-allow-list
           REPO_IN_ALLOW_LIST="$(yq '.repo-allow-lists | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)"
+          REPO_IN_ALLOW_LIST="yes"
           if [[ "$REPO_IN_ALLOW_LIST" == "false" ]]; then
             echo "Adding ${{ github.repository_owner }}/${{ inputs.repo_name }} to repo-allow-list."
             yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
