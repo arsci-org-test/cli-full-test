@@ -23,11 +23,12 @@ jobs:
           GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
         run: |
           # Check if repo is already in repo-allow-list
-          if [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)" == "false" ]]; then
+          REPO_IN_ALLOW_LIST="$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)"
+          if [[ "$REPO_IN_ALLOW_LIST" == "false" ]]; then
             echo "Adding ${{ github.repository_owner }}/${{ inputs.repo_name }} to repo-allow-list."
             yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
             echo "create_pr=true" >> $GITHUB_OUTPUT
-          elif [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)" == "true" ]]; then
+          elif [[ "$REPO_IN_ALLOW_LIST" == "true" ]]; then
             echo "Repo ${{ github.repository_owner }}/${{ inputs.repo_name }} already exists in repo-allow-list. Skipping PR creation."
             echo "create_pr=false" >> $GITHUB_OUTPUT
           else
