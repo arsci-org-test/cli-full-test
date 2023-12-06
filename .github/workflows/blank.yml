@@ -32,7 +32,7 @@ jobs:
           fi
 
       - name: Create Pull Request to add the new repo to the allow list
-        if: ${{ steps.update.repo_allow_list.outputs.create_pr == true}}
+        if: ${{ steps.update_repo_allow_list.outputs.create_pr == 'true' }}
         id: create_pr_allow_list
         uses: peter-evans/create-pull-request@v5.0.2
         with:
