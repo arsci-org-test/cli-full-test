@@ -1,2 +1,3 @@
 repo-allow-list:
   - arsci-org-test/test-from-action
+  - arsci-org-test/cli-full-test-7
