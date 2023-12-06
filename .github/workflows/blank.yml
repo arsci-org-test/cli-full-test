@@ -34,6 +34,7 @@ jobs:
             echo "Unspecified error. Exiting"
             echo "create_pr=false" >> $GITHUB_OUTPUT
             exit 1
+          fi
 
       - name: Create Pull Request to add the new repo to the allow list
         if: ${{ steps.update_repo_allow_list.outputs.create_pr == 'true' }}
