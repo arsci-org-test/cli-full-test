@@ -27,7 +27,7 @@ jobs:
             echo "Adding ${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }} to repo-allow-list."
             yq '.repo-allow-list += "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}"' -i .gruntwork/config.yml
             echo "create_pr=true" >> $GITHUB_OUTPUT
-          elif [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}")' .gruntwork/config.yml)" == "true" ]]
+          elif [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}")' .gruntwork/config.yml)" == "true" ]]; then
             echo "Repo ${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }} already exists in repo-allow-list. Skipping PR creation."
             echo "create_pr=false" >> $GITHUB_OUTPUT
           else
