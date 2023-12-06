@@ -23,17 +23,17 @@ jobs:
           GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
         run: |
           # Check if repo is already in repo-allow-list
-          if [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}")' .gruntwork/config.yml)" == "false" ]]; then
-            echo "Adding ${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }} to repo-allow-list."
-            yq '.repo-allow-list += "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}"' -i .gruntwork/config.yml
+          if [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)" == "false" ]]; then
+            echo "Adding ${{ github.repository_owner }}/${{ inputs.repo_name }} to repo-allow-list."
+            yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
             echo "create_pr=true" >> $GITHUB_OUTPUT
-          elif [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }}")' .gruntwork/config.yml)" == "true" ]]; then
-            echo "Repo ${{ github.repository_owner }}/${{ steps.account_request.outputs.new_infra_live_repo_name }} already exists in repo-allow-list. Skipping PR creation."
+          elif [[ "$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)" == "true" ]]; then
+            echo "Repo ${{ github.repository_owner }}/${{ inputs.repo_name }} already exists in repo-allow-list. Skipping PR creation."
             echo "create_pr=false" >> $GITHUB_OUTPUT
           else
             echo "Unspecified error. Exiting"
+            echo "create_pr=false" >> $GITHUB_OUTPUT
             exit 1
-          fi
 
       - name: Create Pull Request to add the new repo to the allow list
         if: ${{ steps.update_repo_allow_list.outputs.create_pr == 'true' }}
