@@ -19,7 +19,7 @@ jobs:
       - name: Create new team repo
         id: create_new_team_repo
         env:
-          GH_TOKEN: ${{ secrets.pr-merge-test }}
+          GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
           GH_ORG: ${{ github.repository_owner }}
           GH_NEW_INFRA_LIVE_REPO_NAME: "new-repo-1"
         run: |
@@ -57,7 +57,7 @@ jobs:
       - name: Set new repo branch protection
         id: set_branch_protection
         env:
-          GH_TOKEN: ${{ secrets.pr-merge-test }}
+          GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
           GH_ORG: ${{ github.repository_owner }}
           GH_NEW_INFRA_LIVE_REPO_NAME: "new-repo-1"
         run: |
