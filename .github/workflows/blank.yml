@@ -100,6 +100,7 @@ jobs:
           token: ${{ secrets.MANAGE_REPOS_TOKEN }}
           add-paths: .gruntwork/config.yml
           branch: "enhancement/sdlc-repo-${{ inputs.repo_name }}"
+          delete-branch: true
           commit-message: "Add SDLC repo-allow-list permissions for ${{ github.repository_owner }}"
           title: "Add SDLC repo-allow-list permissions for ${{ github.repository_owner }}"
           body: |
