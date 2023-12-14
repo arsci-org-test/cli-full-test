@@ -104,3 +104,13 @@ jobs:
           title: "Add SDLC repo-allow-list permissions for ${{ github.repository_owner }}"
           body: |
             This pull request updates the `config.yml` `repo-allow-list` permissions
+      - name: Approve PR Add and Merge
+        if: ${{ steps.update_repo_allow_list.outputs.create_pr == 'true' }}
+        id: approve_and_merge_repo_allow_list
+        env:
+          GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
+          GH_ORG: ${{ github.repository_owner }}
+          GH_NEW_INFRA_LIVE_REPO_NAME: ${{ inputs.repo_name }}
+        run: |
+          # Approve the PR from the previous step
+          gh pr review ${{ steps.create_pr_allow_list.outputs.pull-request-number }}
