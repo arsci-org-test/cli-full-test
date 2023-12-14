@@ -2,3 +2,4 @@ repo-allow-list:
   - arsci-org-test/test-from-action
   - arsci-org-test/new-repo-2
   - arsci-org-test/new-repo-3
+  - arsci-org-test/new-repo-4
