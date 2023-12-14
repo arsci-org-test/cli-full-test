@@ -17,7 +17,6 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v3.6.0
       - name: Create new team repo
-        if: ${{ contains(inputs.terragrunt_command, 'apply') }}
         id: create_new_team_repo
         env:
           GH_TOKEN: ${{ secrets.pr-merge-test }}
@@ -56,7 +55,6 @@ jobs:
           fi
 
       - name: Set new repo branch protection
-        if: ${{ contains(inputs.terragrunt_command, 'apply') }}
         id: set_branch_protection
         env:
           GH_TOKEN: ${{ secrets.pr-merge-test }}
