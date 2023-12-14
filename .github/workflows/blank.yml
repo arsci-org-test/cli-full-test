@@ -114,4 +114,4 @@ jobs:
           GH_NEW_INFRA_LIVE_REPO_NAME: ${{ inputs.repo_name }}
         run: |
           # Approve the PR from the previous step
-          gh pr merge --admin --squash ${{ steps.create_pr_allow_list.outputs.pull-request-number }}
+          gh pr merge --admin --squash --delete-branch ${{ steps.create_pr_allow_list.outputs.pull-request-number }}
