@@ -16,103 +16,58 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v3.6.0
-      - name: Add new repository to Gruntwork repo-allow-list
-        id: update_repo_allow_list
-        shell: bash
+      - name: Create new team repo
+        if: ${{ contains(inputs.terragrunt_command, 'apply') }}
+        id: create_new_team_repo
         env:
-          GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
+          GH_TOKEN: ${{ secrets.pr-merge-test }}
+          GH_ORG: ${{ github.repository_owner }}
+          GH_NEW_INFRA_LIVE_REPO_NAME: "new-repo-1"
         run: |
-          # Check if repo is already in repo-allow-list
-          REPO_IN_ALLOW_LIST="$(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml)"
-          REPO_IN_ALLOW_LIST="yes"
-          if [[ "$REPO_IN_ALLOW_LIST" == "false" ]]; then
-            echo "Adding ${{ github.repository_owner }}/${{ inputs.repo_name }} to repo-allow-list."
-            yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
-            echo "create_pr=true" >> $GITHUB_OUTPUT
-          elif [[ "$REPO_IN_ALLOW_LIST" == "true" ]]; then
-            echo "Repo ${{ github.repository_owner }}/${{ inputs.repo_name }} already exists in repo-allow-list. Skipping PR creation."
-            echo "create_pr=false" >> $GITHUB_OUTPUT
+          # Check if the repo exists before trying to create it
+          GH_REPO_STATUS_CODE="$(curl --silent --write-out '%{http_code}' --output /dev/null \
+            -X GET \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GH_ORG/$GH_NEW_INFRA_LIVE_REPO_NAME")"
+
+          # If the repo does not exist (404 status code), then create it
+          if [[ "$GH_REPO_STATUS_CODE" == 404 ]]; then
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /orgs/$GH_ORG/repos \
+              -f name=$GH_NEW_INFRA_LIVE_REPO_NAME \
+              -f visibility=private \
+              -f auto_init=true
+
+              echo "::notice title=New team repo created!::See created repository: https://github.com/$GH_ORG/$GH_NEW_INFRA_LIVE_REPO_NAME."
+
+          # If the repo exists (200 status code), print a message and continue
+          elif [[ "$GH_REPO_STATUS_CODE" == 200 ]]; then
+            echo "Repository https://github.com/$GH_ORG/$GH_NEW_INFRA_LIVE_REPO_NAME already exists."
+
+          # If GH returns a non 200 or non 404 status code, print and exit with an error
           else
-            echo "Unspecified error. Exiting"
-            echo "create_pr=false" >> $GITHUB_OUTPUT
+            echo "Status code $GH_REPO_STATUS_CODE returned from GitHub API. Exiting with error."
             exit 1
           fi
 
-      - name: Create Pull Request to add the new repo to the allow list
-        if: ${{ steps.update_repo_allow_list.outputs.create_pr == 'true' }}
-        id: create_pr_allow_list
-        uses: peter-evans/create-pull-request@v5.0.2
-        with:
-          base: main
-          token: ${{ secrets.MANAGE_REPOS_TOKEN }}
-          branch: "enhancement/sdlc-account-team-${{ inputs.repo_name }}"
-          commit-message: "Add SDLC repo-allow-list permissions for "
-          title: "Add SDLC repo-allow-list permissions for "
-          body: |
-            This pull request updates the `config.yml` `repo-allow-list` permissions file with the newly created SDLC `infrastructure-live` repository, which was created in https://github.com.
-      # - name: Create new team repo
-      #   shell: bash
-      #   env:
-      #     GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
-      #   run: |
-      #     REPO_EXISTS_ID=$(curl -L \
-      #       -X GET \
-      #       -H "Accept: application/vnd.github+json" \
-      #       -H "Authorization: Bearer $GH_TOKEN" \
-      #       -H "X-GitHub-Api-Version: 2022-11-28" \
-      #       https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.repo_name }} | jq .id)
-
-      #     if [ $REPO_EXISTS_ID == null ]; then
-      #       gh api \
-      #         --method POST \
-      #         -H "Accept: application/vnd.github.v3+json" \
-      #         -H "X-GitHub-Api-Version: 2022-11-28" \
-      #         /orgs/${{ github.repository_owner }}/repos \
-      #         -f name=${{ inputs.repo_name }} \
-      #         -f visibility=public \
-      #         -f auto_init=true
-      #     else
-      #       echo "Repository already exists"
-      #     fi
-
-      # - name: Set new repo branch protection
-      #   shell: bash
-      #   env:
-      #     GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
-      #   run: |
-      #     # SET BRANCH PROTECTION
-      #     # Note that this API call requires:
-      #     #  - Read and Write access to Repository Administration (All Repositories - Repository Permissions)
-      #     #  - Read access to Repository Metadata (All Repositories - Repository Permissions)
-      #     curl -L \
-      #       -X PUT \
-      #       -H "Accept: application/vnd.github+json" \
-      #       -H "Authorization: Bearer $GH_TOKEN" \
-      #       -H "X-GitHub-Api-Version: 2022-11-28" \
-      #       https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.repo_name }}/branches/main/protection \
-      #       -d '{ "required_status_checks": { "strict": true, "checks": [ ] }, "required_pull_request_reviews": { "require_code_owner_reviews": true, "require_last_push_approval": true, "required_approving_review_count": 1 }, "enforce_admins": false, "restrictions": null }'
-
-      # - name: Add new repository to Gruntwork repo-allow-list
-      #   shell: bash
-      #   env:
-      #     GH_TOKEN: ${{ secrets.MANAGE_REPOS_TOKEN }}
-      #   run: |
-      #     cat .gruntwork/config.yml
-      #     if [ $(yq '.repo-allow-list | any_c(.  == "${{ github.repository_owner }}/${{ inputs.repo_name }}")' .gruntwork/config.yml) == "false" ]; then
-      #       # yq '.repo-allow-list += "${{ github.repository_owner }}/${{ inputs.repo_name }}"' -i .gruntwork/config.yml
-      #       echo "skip adding"
-      #     fi
-      #     cat .gruntwork/config.yml
-
-      # - name: Create Pull Request to add the new repo to the allow list
-      #   id: create_pr
-      #   uses: peter-evans/create-pull-request@v5.0.2
-      #   with:
-      #     base: main
-      #     token: ${{ secrets.MANAGE_REPOS_TOKEN }} 
-      #     # path: ${{ github.event.repository.name }}
-      #     branch: "enhancement/sdlc-account-team-${{ inputs.repo_name }}"
-      #     commit-message: "Add repo"
-      #     title: "Add repo"
-      #     body: |
-      #       This pull request updates things.
+      - name: Set new repo branch protection
+        if: ${{ contains(inputs.terragrunt_command, 'apply') }}
+        id: set_branch_protection
+        env:
+          GH_TOKEN: ${{ secrets.pr-merge-test }}
+          GH_ORG: ${{ github.repository_owner }}
+          GH_NEW_INFRA_LIVE_REPO_NAME: "new-repo-1"
+        run: |
+          echo "Setting branch protection rules for $GH_ORG/$GH_NEW_INFRA_LIVE_REPO_NAME. See https://docs.gruntwork.io/pipelines/security/branch-protection for more information on recommended rules."
+          curl -L \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/$GH_ORG/$GH_NEW_INFRA_LIVE_REPO_NAME/branches/main/protection \
+            -d '{ "required_status_checks": { "strict": true, "checks": [ ] }, "required_pull_request_reviews": { "require_code_owner_reviews": true, "require_last_push_approval": true, "required_approving_review_count": 1 }, "enforce_admins": false, "restrictions": null }'
